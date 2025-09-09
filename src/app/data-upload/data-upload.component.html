@@ -1,0 +1,91 @@
+<div class="container">
+  <div class="card">
+    <h2> Upload Neural Data</h2>
+    <p class="mb-4">Select neural data files to upload for processing. Supported formats: CSV, JSON, HDF5, MAT, NPY, NPZ</p>
+    
+    <!-- File Upload Area -->
+    <div 
+      class="file-upload-area"
+      [class.dragover]="isDragOver"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)"
+      (click)="fileInput.click()"
+    >
+      <div class="upload-icon">📁</div>
+      <div class="upload-text">Click to select files or drag and drop</div>
+      <div class="upload-subtext">Maximum file size: 100MB per file</div>
+      <input 
+        #fileInput
+        type="file" 
+        multiple 
+        accept=".csv,.json,.h5,.hdf5,.mat,.npy,.npz"
+        (change)="onFileSelected($event)"
+        style="display: none;"
+      >
+    </div>
+
+    <!-- File List -->
+    <div class="file-list" *ngIf="uploadedFiles.length > 0">
+      <h3>Selected Files</h3>
+      <div *ngFor="let file of uploadedFiles; let i = index" class="file-item">
+        <div class="file-info">
+          <span class="file-icon"></span>
+          <div class="file-details">
+            <div class="file-name">{{ file.file.name }}</div>
+            <div class="file-size">{{ formatFileSize(file.file.size) }}</div>
+            <div class="progress-bar" *ngIf="file.status === 'uploading'">
+              <div class="progress-fill" [style.width.%]="file.progress"></div>
+            </div>
+          </div>
+        </div>
+        <div class="file-actions">
+          <span *ngIf="file.status === 'success'" class="text-success">✅ Uploaded</span>
+          <span *ngIf="file.status === 'error'" class="text-danger">❌ Error</span>
+          <span *ngIf="file.status === 'uploading'" class="loading"></span>
+          <button 
+            *ngIf="file.status === 'pending' || file.status === 'error'"
+            class="btn btn-primary btn-sm"
+            (click)="uploadFile(i)"
+            [disabled]="isUploading"
+          >
+            Upload
+          </button>
+          <button 
+            class="btn btn-danger btn-sm"
+            (click)="removeFile(i)"
+            [disabled]="file.status === 'uploading'"
+          >
+            Remove
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upload All Button -->
+    <div class="text-center mt-4" *ngIf="uploadedFiles.length > 0">
+      <button 
+        class="btn btn-success"
+        (click)="uploadAllFiles()"
+        [disabled]="isUploading || !hasPendingFiles()"
+      >
+        <span *ngIf="isUploading" class="loading"></span>
+        {{ isUploading ? 'Uploading...' : 'Upload All Files' }}
+      </button>
+    </div>
+
+    <!-- Alerts -->
+    <div *ngIf="alertMessage" class="alert" [ngClass]="alertType">
+      {{ alertMessage }}
+    </div>
+
+    <!-- Processing Information -->
+    <div class="card mt-4 processing-info" *ngIf="true">
+      <h3>Processing Information</h3>
+      <p><strong>Backend Endpoint:</strong> {{ backendUrl }}</p>
+      <p><strong>Supported Formats:</strong> CSV, JSON, HDF5, MAT, NPY, NPZ</p>
+      <p><strong>Max File Size:</strong> 100MB per file</p>
+      <p><strong>Processing:</strong> Files are sent to the backend for neural data analysis and processing</p>
+    </div>
+  </div>
+</div>
