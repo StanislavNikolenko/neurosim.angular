@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpEventType, HttpProgressEvent } from '@angular/common/http';
+import { HttpClient, HttpEventType } from '@angular/common/http';
+import { environment } from '../../environments/environment.development';
 
 interface UploadedFile {
   file: File;
@@ -24,9 +25,8 @@ export class DataUploadComponent {
   isUploading = false;
   alertMessage = '';
   alertType = '';
-  //backendUrl = 'http://localhost:3000/api/upload'; // Update this to your backend URL
-  backendUrl = 'http://localhost:3001/ingest';
-  
+  backendUrl = environment.backendUrl;
+
   constructor(private http: HttpClient) {}
 
   onDragOver(event: DragEvent): void {
@@ -73,8 +73,8 @@ export class DataUploadComponent {
   }
 
   isValidFile(file: File): boolean {
-    const validExtensions = ['.csv', '.json', '.h5', '.hdf5', '.mat', '.npy', '.npz'];
-    const maxSize = 100 * 1024 * 1024; // 100MB
+    const validExtensions = ['.xml', '.dat', '.nrs'];
+    const maxSize = 200 * 1024 * 1024; // 200MB
     
     const hasValidExtension = validExtensions.some(ext => 
       file.name.toLowerCase().endsWith(ext)

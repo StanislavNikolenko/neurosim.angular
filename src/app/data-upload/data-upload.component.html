@@ -1,7 +1,7 @@
 <div class="container">
   <div class="card">
     <h2> Upload Neural Data</h2>
-    <p class="mb-4">Select neural data files to upload for processing. Supported formats: CSV, JSON, HDF5, MAT, NPY, NPZ</p>
+    <p class="mb-4">Select neural data files to upload for processing. Supported formats: XML, DAT, NRS</p>
     
     <!-- File Upload Area -->
     <div 
@@ -14,12 +14,12 @@
     >
       <div class="upload-icon">📁</div>
       <div class="upload-text">Click to select files or drag and drop</div>
-      <div class="upload-subtext">Maximum file size: 100MB per file</div>
+      <div class="upload-subtext">Maximum file size: 200MB per file</div>
       <input 
         #fileInput
         type="file" 
         multiple 
-        accept=".csv,.json,.h5,.hdf5,.mat,.npy,.npz"
+        accept=".xml,.dat,.nrs"
         (change)="onFileSelected($event)"
         style="display: none;"
       >
@@ -82,9 +82,8 @@
     <!-- Processing Information -->
     <div class="card mt-4 processing-info" *ngIf="true">
       <h3>Processing Information</h3>
-      <p><strong>Backend Endpoint:</strong> {{ backendUrl }}</p>
-      <p><strong>Supported Formats:</strong> CSV, JSON, HDF5, MAT, NPY, NPZ</p>
-      <p><strong>Max File Size:</strong> 100MB per file</p>
+      <p><strong>Supported Formats:</strong> XML, DAT, NRS</p>
+      <p><strong>Max File Size:</strong> 200MB per file</p>
       <p><strong>Processing:</strong> Files are sent to the backend for neural data analysis and processing</p>
     </div>
   </div>
