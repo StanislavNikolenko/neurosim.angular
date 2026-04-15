@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpEventType } from '@angular/common/http';
 import { environment } from '../../environments/environment.development';
+import { firstValueFrom } from 'rxjs';
 
 interface UploadedFile {
   file: File;
@@ -91,18 +92,16 @@ export class DataUploadComponent {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
-  uploadFile(index: number): void {
+  async uploadFile(index: number): Promise<void> {
     const fileItem = this.uploadedFiles[index];
     if (fileItem.status === 'uploading') return;
 
     fileItem.status = 'uploading';
     this.isUploading = true;
 
-    const formData = new FormData();
-    formData.append('file', fileItem.file);
-    formData.append('type', 'neural-data');
+    const uploadUrl = await this.getUploadUrl(fileItem.file);
 
-    this.http.post(this.backendUrl, formData, {
+    this.http.put(uploadUrl, fileItem.file, {
       reportProgress: true,
       observe: 'events'
     }).subscribe({
@@ -124,6 +123,17 @@ export class DataUploadComponent {
         this.showAlert(`Failed to upload ${fileItem.file.name}: ${fileItem.error}`, 'error');
       }
     });
+  }
+
+  async getUploadUrl(file: File): Promise<string> {
+    return await firstValueFrom(
+      this.http.post(`${this.backendUrl}/upload-url`, {
+        fileName: file.name,
+        contentType: file.type
+      }, {
+        responseType: 'text'
+      })
+    );
   }
 
   uploadAllFiles(): void {
