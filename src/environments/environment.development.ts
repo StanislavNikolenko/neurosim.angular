@@ -1,3 +1,3 @@
 export const environment = {
-  backendUrl: 'http://localhost:3000/upload'
+  backendUrl: 'http://localhost:3000'
 };
