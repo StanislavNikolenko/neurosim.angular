@@ -12,6 +12,12 @@ interface UploadedFile {
   error?: string;
 }
 
+interface GetUploadUrlResult {
+  signedUrl: string;
+  correlationId: string;
+  uploadKey: string;
+}
+
 @Component({
   selector: 'app-data-upload',
   standalone: true,
@@ -99,9 +105,9 @@ export class DataUploadComponent {
     fileItem.status = 'uploading';
     this.isUploading = true;
 
-    const uploadUrl = await this.getUploadUrl(fileItem.file);
+    const { signedUrl, correlationId, uploadKey } = await this.getUploadUrl(fileItem.file);
 
-    this.http.put(uploadUrl, fileItem.file, {
+    this.http.put(signedUrl, fileItem.file, {
       reportProgress: true,
       observe: 'events'
     }).subscribe({
@@ -113,7 +119,14 @@ export class DataUploadComponent {
           fileItem.status = 'success';
           fileItem.progress = 100;
           this.isUploading = false;
-          this.showAlert(`File ${fileItem.file.name} uploaded successfully!`, 'success');
+          this.http.post(`${this.backendUrl}/upload-complete`, {
+            correlationId,
+            uploadKey
+          }).subscribe({
+            next: () => {
+              this.showAlert(`File ${fileItem.file.name} uploaded successfully!`, 'success');
+            }
+          });
         }
       },
       error: (error) => {
@@ -125,13 +138,13 @@ export class DataUploadComponent {
     });
   }
 
-  async getUploadUrl(file: File): Promise<string> {
+  async getUploadUrl(file: File): Promise<GetUploadUrlResult> {
     return await firstValueFrom(
-      this.http.post(`${this.backendUrl}/upload-url`, {
+      this.http.post<GetUploadUrlResult>(`${this.backendUrl}/upload-url`, {
         fileName: file.name,
         contentType: file.type
       }, {
-        responseType: 'text'
+        responseType: 'json'
       })
     );
   }
