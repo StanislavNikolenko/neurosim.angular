@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpEventType } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpEventType } from '@angular/common/http';
 import { environment } from '../../environments/environment.development';
 import { firstValueFrom } from 'rxjs';
 
@@ -105,7 +105,19 @@ export class DataUploadComponent {
     fileItem.status = 'uploading';
     this.isUploading = true;
 
-    const { signedUrl, correlationId, uploadKey } = await this.getUploadUrl(fileItem.file);
+    let signedUrl: string;
+    let correlationId: string;
+    let uploadKey: string;
+
+    try { 
+      ({ signedUrl, correlationId, uploadKey } = await this.getUploadUrl(fileItem.file));
+    } catch (error) {
+      fileItem.error = this.getErrorMessage(error);
+      fileItem.status = 'error';
+      this.isUploading = false;
+      this.showAlert(`Failed to upload ${fileItem.file.name}: ${fileItem.error}`, 'error');
+      return;
+    }
 
     this.http.put(signedUrl, fileItem.file, {
       reportProgress: true,
@@ -133,20 +145,20 @@ export class DataUploadComponent {
         fileItem.status = 'error';
         fileItem.error = error.message || 'Upload failed';
         this.isUploading = false;
-        this.showAlert(`Failed to upload ${fileItem.file.name}: ${fileItem.error}`, 'error');
+        this.showAlert(`Failed to upload ${fileItem.file.name}`, 'error');
       }
     });
   }
 
   async getUploadUrl(file: File): Promise<GetUploadUrlResult> {
-    return await firstValueFrom(
-      this.http.post<GetUploadUrlResult>(`${this.backendUrl}/upload-url`, {
-        fileName: file.name,
-        contentType: file.type
-      }, {
-        responseType: 'json'
-      })
-    );
+      return await firstValueFrom(
+        this.http.post<GetUploadUrlResult>(`${this.backendUrl}/upload-url`, {
+          fileName: file.name,
+          contentType: file.type
+        }, {
+          responseType: 'json'
+        })
+      );
   }
 
   uploadAllFiles(): void {
@@ -173,5 +185,12 @@ export class DataUploadComponent {
       this.alertMessage = '';
       this.alertType = '';
     }, 5000);
+  }
+
+  private getErrorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message || error.message || 'Upload failed';
+    }
+    return error instanceof Error ? error.message : 'Upload failed';
   }
 }
