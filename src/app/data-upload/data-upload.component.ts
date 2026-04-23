@@ -15,7 +15,7 @@ interface UploadedFile {
 interface GetUploadUrlResult {
   signedUrl: string;
   correlationId: string;
-  uploadKey: string;
+  datasetId: string;
 }
 
 @Component({
@@ -107,10 +107,10 @@ export class DataUploadComponent {
 
     let signedUrl: string;
     let correlationId: string;
-    let uploadKey: string;
+    let datasetId: string;
 
     try { 
-      ({ signedUrl, correlationId, uploadKey } = await this.getUploadUrl(fileItem.file));
+      ({ signedUrl, correlationId, datasetId } = await this.getUploadUrl(fileItem.file));
     } catch (error) {
       fileItem.error = this.getErrorMessage(error);
       fileItem.status = 'error';
@@ -133,7 +133,7 @@ export class DataUploadComponent {
           this.isUploading = false;
           this.http.post(`${this.backendUrl}/upload-complete`, {
             correlationId,
-            uploadKey
+            datasetId
           }).subscribe({
             next: () => {
               this.showAlert(`File ${fileItem.file.name} uploaded successfully!`, 'success');
